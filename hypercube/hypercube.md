@@ -97,7 +97,8 @@ such that
 	``` 
 
 
-- Dependent-product-like rule for each slot of ô" in LHS rewrites, which induces a modality for terms in that slot.   The premises are judgements assigning a type (T1) to each rewrite constructor parameter 
+- Dependent-product-like rule for each slot of ⊙ in LHS rewrites, which induces a modality for terms in that slot.   The premises are judgments assigning a type to each rewrite constructor parameter.
+
 	- RHO
 
 		First slot: (no x in context for C because x is shared between context and slot)
@@ -125,8 +126,6 @@ such that
 	- Pi
 
 		```
-		
-
 		Γ ⊢ A: s_{N,1}    Γ, x: A ⊢ B: s_{P,2}
 		——————————————————————————————————————
 		Γ ⊢ Nu(A, λx.B): s_{P,2}
@@ -152,7 +151,7 @@ such that
 - morphism on processes
 
 	```
-	«%: P -> P
+	◇: P -> P
 	```
 
 	conv-like 	inference rule
@@ -160,7 +159,7 @@ such that
 	```
 	Γ ⊢ s(A): B    Γ ⊢ t(A): B'
 	————————————————————————————
-	Γ ⊢ s(A): «%B'
+	Γ ⊢ s(A): ◇B'
 	```
 
 - app-like rule for each rewrite target with a use of ev on an exponential object.
@@ -170,12 +169,12 @@ such that
 		(TODO: add x to inference rule)
 		Γ ⊢ A: <|x:B!(Q:C)>D    Γ ⊢ y: B    Γ ⊢ E: C
 		————————————————————————————————————————————— app-like = source of trace, compare cut
-		Γ ⊢ A | y!(E): «%ev(ev(λx.λQ.D, y), @E)
+		Γ ⊢ A | y!(E): ◇ev(ev(λx.λQ.D, y), @E)
 
 		(TODO: If you use x in dependent type of C, what happens when names don't match?)
 		Γ ⊢ A: <for(y:C<-x:B){S:D}|>E    Γ ⊢ A: x:B!(F:C)
 		—————————————————————————————————————————————————
-		Γ ⊢ A | for(y<-x){Q}: «%ev(\y.ev(\S.E, Q), @F)
+		Γ ⊢ A | for(y<-x){Q}: ◇ev(\y.ev(\S.E, Q), @F)
 		```
 
 - cut-like rule for each rewrite target with a use of ev on an exponental object
@@ -184,7 +183,7 @@ such that
 	for(chan, cont)
 	For(Chan, Pi)  Pi type holds lambda Pi(L) and in the consequent we could write ev(L, @E) instead of using sugar
 	Γ ⊢ A: <|x:B!(Q:C)>D    Γ ⊢ E: C   Γ ⊢ A: For(y:@C<-B)R
-	——————————————————————————————————————————————————— ——— cut-like = target of trace, compare app
+	——————————————————————————————————————————————————————— cut-like = target of trace, compare app
 	Γ ⊢ ev(\y.R, @E): ev(\Q.D, E)
 	```
 
