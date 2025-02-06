@@ -192,8 +192,8 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
     Γ ⊢ A: s₁^T    Γ, x: A ⊢ B: s₂^{T'}    Γ, x: A ⊢ C: B
     —————————————————————————————————————————————————————
-    Γ ⊢ λx: A.C: ∏_{x: A}.B
-    Γ ⊢ λx: A.C: ∏(A, λx.B)
+    Γ ⊢ λx.C: ∏_{x: A}.B
+    Γ ⊢ λx.C: ∏(A, λx.B)
     ```
     
 - Dependent-product-like and Abs-like rules for term constructors taking exponential objects as parameters
@@ -259,7 +259,27 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ B: ◇A'
     ```
 
-- Modalities from all process subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).
+    `◇*: P -> P`
+    
+    ```
+    Γ ⊢ A: B
+    ———————————
+    Γ ⊢ A: ◇*B
+    ```
+
+    ```
+    Γ ⊢ A: ◇◇*B
+    —————————————
+    Γ ⊢ A: ◇*B
+    ```
+
+    ```
+    Γ ⊢ A: ◇*◇*B
+    —————————————
+    Γ ⊢ A: ◇*B
+    ```
+
+- Modalities from all process-shaped subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).
 
   - E.g. SKI `σ: App(App(App(S, x), y), z) ~> App(App(x, z), App(y, z)`
                                `A   B   C`
@@ -320,17 +340,23 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
     Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
     ——————————————————————————————————————————————————————
-    Γ ⊢ D: <App(Lam(λx:A.C), -)>B                        // B is structural type of ev(λx.C, D)?
+    Γ ⊢ D: <App(Lam(λx:A.C), -)>B                         // B is structural type of ev(λx.C, D)?
     ```
 
-- Conv in modality context
+- Conv can be used in any modality context:
+
+    ```
+    Γ ⊢ A: ◇B    Γ ⊢ ρ: B ~> B'
+    —————————————————————————————
+    Γ ⊢ A: ◇◇B'
+    ```
 
     ```
     Γ ⊢ A: <B>C    Γ ⊢ ρ: C ~> C'
     —————————————————————————————
-    Γ ⊢ A: <B>◇C
+    Γ ⊢ A: <B>◇C'
     ```
-    
+
   - E.g. SKI
 
     ```
