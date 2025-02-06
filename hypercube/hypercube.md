@@ -254,8 +254,8 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
     
     ```
-    Γ ⊢ A: s    Γ ⊢ B: A    Γ ⊢ B ~> B'    Γ ⊢ B': A'
-    —————————————————————————————————————————————————
+    Γ ⊢ A: s    Γ ⊢ B: A    Γ ⊢ ρ: B ~> B'    Γ ⊢ B': A'
+    ————————————————————————————————————————————————————
     Γ ⊢ B: ◇A'
     ```
 
@@ -321,6 +321,24 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
     ——————————————————————————————————————————————————————
     Γ ⊢ D: <App(Lam(λx:A.C), -)>B                        // B is structural type of ev(λx.C, D)?
+    ```
+
+- Conv in modality context
+
+    ```
+    Γ ⊢ A: <B>C    Γ ⊢ ρ: C ~> C'
+    —————————————————————————————
+    Γ ⊢ A: <B>◇C
+    ```
+    
+  - E.g. SKI
+
+    ```
+    Γ ⊢ K: s^P    Γ ⊢ K: K    Γ ⊢ K: s^P    Γ ⊢ K: K    Γ ⊢ C: s^P
+    —————————————————————————————————————————————————————————————— modality
+    Γ ⊢ App(App(S, K), K): <App(-, z: C)>App(App(K, C), App(K, C))    Γ ⊢ κ(C, App(K, C): App(App(K, C), App(K, C)) ~> C
+    ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————— conv
+    Γ ⊢ App(App(S, K), K): <App(-, z: C)>◇C
     ```
 
 - App-like rules for rewrites using ev
