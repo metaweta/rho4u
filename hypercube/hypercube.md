@@ -332,7 +332,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Γ ⊢ A: < - | x: B ! (Q: C) > D    Γ ⊢ x: B    Γ ⊢ S: C    Γ ⊢ λQ.D: ∏_{Q: C}.s
       ——————————————————————————————————————————————————————————————————————————————
       Γ ⊢ A | x!(S): ◇(D {S / Q})
-      Γ ⊢ A | x!(S): ◇ev(D, S)
+      Γ ⊢ A | x!(S): ◇ev(λQ.D, S)
       ```
 
 - Cut-like rules...
