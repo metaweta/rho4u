@@ -57,6 +57,46 @@ Given an interactive finitely-presented GSLT T, produce new typed GSLT.
       head: App(s(E), Q) ~> App(t(E), Q)
     ```
 
+- E.g. SKI
+
+    ```
+    shapes
+      // Automatically have R, V, s,t: R -> V.
+      P // First shape gets set equal to V as equation of identity morphisms.
+
+    fn syms
+      App: P x P -> P
+      S, K, I: 1 -> P
+      S1: P -> P
+      S2: P x P -> P
+      K1: P -> P
+    
+    eqns
+      // V = P from above
+    
+    rewrites
+      σ1: P -> R
+      σ1: App(S, x) ~> S1(x)
+      
+      σ2: P x P -> R
+      σ2: App(S1(x) y) ~> S2(x, y)
+      
+      σ3: P x P x P -> R
+      σ3: App(S2(x, y) z) ~> ((x z) (y z))
+      
+      κ1: P -> R
+      κ1: App(K, x) ~> K1(x)
+      
+      κ2: P x P -> R
+      κ2: App(K1(x), y) ~> x
+            
+      ι1: P -> R
+      ι1: App(I, x) ~> x
+      
+      head: R x P -> R
+      head: App(s(E), Q) ~> App(t(E), Q)
+    ```
+
 - E.g. Ambient
 
     ```
@@ -96,6 +136,8 @@ Given an interactive finitely-presented GSLT T, produce new typed GSLT.
       open: N x P x P -> R
       open: open m.P | m[Q] ~> P | Q
     ```
+
+  - E.g. Rule 110?
 
 We'll consider the free theory on empty sets.  Since it's free, we get an algebra for building up terms and a coalgebra for taking them apart.  That lets us do destructuring assignment in the premises of an inference rule.
 
@@ -153,175 +195,31 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ λx: A.C: ∏_{x: A}.B
     Γ ⊢ λx: A.C: ∏(A, λx.B)
     ```
-
-- Product- and abstraction-like rule for each slot of ⊙ in LHS rewrites, which induces a modality for terms in that slot.   The premises are judgments assigning a type to each rewrite constructor parameter. TODO: desugar syntax below to restate substitution using ev.
-
-  - E.g. Ambient
-
-    - 1st slot, `in(n, m, Q, R, S): {n[in m.Q | R]} | m[S] ~> m[n[Q | R] | S]`
     
-      We add a process constructor `<in1>:N x N x P x (P -> P) ~> P`.
-      We write `<in1>(m, A, B, λS.C)` as `< - | (m: A)[S: B] >C`.
+- Dependent-product-like and Abs-like rules for term constructors taking exponential objects as parameters
+
+  - E.g. λ-calc
 
       ```
-      Γ ⊢ A: s₁^N    Γ ⊢ m: A    Γ ⊢ B: s₂^P    Γ, S: B ⊢ C: s₃^P
-      ———————————————————————————————————————————————————————————
-      Γ ⊢ < - | (m: A)[S: B] >C: s₃^P
-      Γ ⊢ <in1>(m, A, B, λs.C): s₃^P
-      ```
-
-      ```
-      Γ ⊢ A: s₁^N    Γ ⊢ m: A    Γ ⊢ B: s₂^P    Γ, S: B ⊢ C: s₃^P    Γ ⊢ C: s₄^N    Γ ⊢ n: C    Γ ⊢ D: s₅^P    Γ ⊢ Q: D    Γ ⊢ E: s₆^P    Γ ⊢ R: E
-      ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ n[in m.Q | R] : <in1>(m, A, B, λs.C)
-      ```
-
-    - 2nd slot, `in(n, m, Q, R, S): n[in m.Q | R] | {m[S]} ~> m[n[Q | R] | S]`
-    
-      We add a process constructor `<in2>: N x N x N x (N x P x P -> P) -> P`.
-      We write `<in2>(A, m, B, C, D, λnQR.C)` as `< (n: A)[in (m: B).(Q: C) | (R: D)] | - >E`.
-
-      ```
-      Γ ⊢ A: s₁^N    Γ ⊢ B: s₂^N    Γ ⊢ m: B    Γ ⊢ C: s₃^P    Γ ⊢ D: s₄^P    Γ, n: A, Q: C, R: D ⊢ E: s₅^P
-      —————————————————————————————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ < (n: A)[in (m: B).(Q: C) | (R: D)] | - >E: s₅^P
-      Γ ⊢ <in2>(A, m, B, C, D, λnQR.C): s₅^P
+      Γ ⊢ A: s₁^P    Γ, x: A ⊢ B: s₂^P
+      ————————————————————————————————
+      Γ ⊢ Pi(A, λx.B): s₂^P
       ```
 
       ```
-      Γ ⊢ A: s₁^N    Γ ⊢ B: s₂^N    Γ ⊢ m: B    Γ ⊢ C: s₃^P    Γ ⊢ D: s₄^P    Γ, n: A, Q: C, R: D ⊢ E: s₅^P    Γ ⊢ F: s₆^P    Γ ⊢ S: F
-      ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ m[S]: < (n: A)[in (m: B).(Q: C) | (R: D)] | - >E
-      Γ ⊢ m[S]: <in2>(A, m, B, C, D, λnQR.C)
+      Γ ⊢ A: s₁^P    Γ, x: A ⊢ B: s₂^P    Γ, x: A ⊢ C: B
+      ——————————————————————————————————————————————————
+      Γ ⊢ Lam(λx.C): Pi(A, λx.B)
       ```
-
-  - E.g. Lambda
-
-    - 1st slot, `beta(K, Q): App([Lam(K)], Q) ~> ev(K, Q)`
-
-      We add a process constructor `<1>:P x (P -> P) -> P`.
-      We write `<1>(B, λy.C)` as `<App(-, y: B)>C`. Note that the parameters to <1> are the same as to ∏, as we expect for this modal type.
-
-      ```
-      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P
-      ——————————————————————————————————
-      Γ ⊢ <App(-, y: B)>C: s₃^P
-      Γ ⊢ <1>(B, λy.C): s₃^P
-      ```
-
-      ```
-      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ ⊢ K: ∏_{y: B}.C
-      —————————————————————————————————————————————————————
-      Γ ⊢ Lam(K) : <App(-, y: B)>C
-      Γ ⊢ Lam(K) : <1>(B, λy.C)
-      ```
-
-    - 2nd slot, `beta(K, Q): App(Lam(K), [Q]) ~> ev(K, Q)`
-
-      We add a process constructor `<2>:P x (P -> P) x ((P -> P) -> P) -> P`.
-      We write `<2>(B, λy.C, λK.D)` as `<App(Lam(K: ∏_{y: B}.C), -)>D`.
-
-      ```
-      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P
-      ——————————————————————————————————————————————————————————————
-      Γ ⊢ <App(Lam(K: ∏_{y: B}.C), -)>D: s₃^P
-      Γ ⊢ <2>(B, λy.C, λK.D): s₃^P
-      ```
-
-      But note that the premise can only be derived in very restricted circumstances:
-
-      `<App(Lam(K: B => C), -)>D` is `B` when `D=C` and Never otherwise.  So if `C` does not depend on a value of type `B`, then we can construct `D=C`.
-
-      `Q: <App(Lam(K: ∏_{y: B}.C), -)>D` is `Q: B` when `D(K) = C(Q)` and Never otherwise.  But since we don't know `Q` in advance (it's the consequent of the rule), we can't construct the premise.
-      
-      Since the general case doesn't hold, I don't know if we can write down the abstraction-like rule.  Can we work out the condition under which it's inhabited and say the following?
-
-      ```
-      Γ ⊢ B: s₁^P    Γ ⊢ C: s₂^P
-      ———————————————————————————————————
-      Γ ⊢ <App(Lam(K: B => C), -)>C: s₂^P
-      Γ ⊢ <2>(B, C): s₂^P
-      ```
-
-      ```
-      Γ ⊢ B: s₁^P    Γ ⊢ C: s₂^P    Γ ⊢ Q: B
-      ——————————————————————————————————————
-      Γ ⊢ Q: <App(Lam(K: B => C), -)>C
-      Γ ⊢ Q: <2>(B, C)
-      ```
-
-      Suppose we capture the current continuation. 
-      App(Lam(K: ∏_{y: B}.C), (call/cc S)) = ev(S, λc.App(Lam(K: ∏_{y: B}.C), c))
-
-      ```
-      Γ, K: ∏_{y: B}.C ⊢ D: s^P    Γ ⊢ ???
-      ————————————————————————————————————————————————————
-      Γ ⊢ Q : <App(Lam(K: ∏_{y: B}.C), -) >D
-      Γ ⊢ Q : <2>(B, λy.C, λK.D)
-      ```
-      
-  - E.g. RHO 
-
-    - 1st slot, `comm(x, K, Q): [x?K] | x!Q ~> ev(K, @Q)`
-
-      We add a process constructor `<1>:N x N x P x (N -> P) -> P`.
-      We treat `K` as `λy.L` of type `∏_{y: @B}.C` and write `<1>(x, A, B, λy.C)` as `< - | x: A!(Q: B) > C{@Q/y}`. Note that the parameters to <1> are the same as to ∏ except for the channel and channel type, as we expect for this modal type.
-
-      ```    
-      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: @B ⊢ C: s₃^P
-      ————————————————————————————————————————————————————————————
-      Γ ⊢ < - | x: A ! (Q: B) > C {@Q/y}: s₃^P
-      Γ ⊢ <1>(x, A, B, λy.C): s₃^P
-      ```
-
-      We treat `K` as `λy.L` of type `∏_{y: @B}.C` and use an uncurried version as the xth premise:
-
-      ```
-      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: @B ⊢ C: s₃^P    Γ, y: @B ⊢ L: C
-      ———————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ x ? (λy.L) : < - | x: A ! (Q: B) > C{@Q/y}
-      Γ ⊢ x ? (λy.L) : <1>(x, A, B, λy.C)
-      ```
-
-  - 2nd slot, `comm(x, K, Q): x?K | [x!Q] ~> ev(K, @Q)`
-
-      We add a process constructor `<2>:N x N x N x (N -> P) x ((N -> P) -> P) -> P`.
-      We write `<2>(x, A, B, λy.C, λK.D)` as `< x:A ? (K: ∏_{y: B}.C) | - >D`.
-
-      ```
-      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^N    Γ, y: B ⊢ C: s₃^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P
-      —————————————————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ < x:A ? (K: ∏_{y: B}.C) | - > D: s₃^P
-      Γ ⊢ <2>(x, A, B, λy.C, λK.D): s₃^P
-      
-      ```
-
-      ```
-      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^N    Γ, y: B ⊢ C: s₃^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P    Γ ⊢ Q: B
-      —————————————————————————————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ x ! Q : < x: A ? (K: ∏_{y: B}.C) | - > D
-      Γ ⊢ x ! Q : <2>(x, A, B, λy.C, λK.D)
-      ```
-
-      But note that the fifth premise can only be derived in very restricted circumstances:
-
-      `(x ! Q): < x: A ? (K: ∏_{y: B}.C) | - > D` is `x ! (Q: B)` when `D=C` and Never otherwise.  So if `C` does not depend on a value of type `B`, then we can construct `D=C`.
-
-      `(x ! Q): <((K: ∏_{y: B}.C) -)>D` is `x ! (Q: B)` when `D(K) = C(z)` and Never otherwise.  But since we don't know `Q` in advance (it's the consequent of the rule), we can't construct the fifth premise.
-
-- Dependent-product-like rules for term constructors taking exponential objects as parameters
 
   - E.g. π-calc / Rholang
 
+    - New: Nu
       ```
       Γ ⊢ A: s₁^N    Γ, x: A ⊢ B: s₂^P
       ————————————————————————————————
       Γ ⊢ Nu(A, λx.B): s₂^P
       ```
-
-- Abs-like rules for constructors taking exponential objects as parameters
-
-  - E.g. π-calc / Rholang
 
       ```
       Γ ⊢ A: s₁^N    Γ, x: A ⊢ B: s₂^P    Γ, x: A ⊢ C: B
@@ -329,47 +227,113 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Γ ⊢ New(λx.B) : Nu(A, λx.C)
       ```
 
+    - For
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: B ⊢ C: s₃^P
+      ———————————————————————————————————————————————————————————
+      Γ ⊢ Pi(x, A, B, λy.C)
+      Γ ⊢ Pi_{y: B <- x: A}.C
+      ```
+      
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: B ⊢ C: s₃^P    Γ, y: B ⊢ D: C
+      —————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ for(y <- x) D: Pi_(y: B <- x: A.C)
+      Γ ⊢ for(x, λy.D): Pi(x, A, B, λy.C)
+      ```
+
 - Conv-like rule
 
+    `◇: P -> P`
+
     ```
-    T ∈ Ob(HC)
-    ——————————————
-    ⊢ ◇T ∈ Ob(HC)
+    Γ ⊢ A: s
+    ——————————
+    Γ ⊢ ◇A: s
     ```
     
     ```
-    Γ ⊢ s(A): B    Γ ⊢ t(A): B'
-    ———————————————————————————
-    Γ ⊢ A: ◇B'
+    Γ ⊢ A: s    Γ ⊢ B: A    Γ ⊢ B ~> B'    Γ ⊢ B': A'
+    —————————————————————————————————————————————————
+    Γ ⊢ B: ◇A'
+    ```
+
+- Modalities from all process subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).
+
+  - E.g. SKI `σ: App(App(App(S, x), y), z) ~> App(App(x, z), App(y, z)`
+                               `A   B   C`
+
+    ```
+    Γ ⊢ A: s^P    Γ ⊢ x: A    Γ ⊢ B: s^P    Γ ⊢ y: B    Γ ⊢ C: s^P
+    ——————————————————————————————————————————————————————————————
+    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(A, C), App(B, C))
+    
+    Γ ⊢ A: s^P    Γ ⊢ x: A    Γ ⊢ B: s^P    Γ ⊢ C: s^P
+    —————————————————————————————————————————————————————————————————
+    Γ ⊢ App(S, x): <App(App(-, y: B), z: C)>App(App(A, C), App(B, C))
+    
+    Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ ⊢ C: s^P
+    ————————————————————————————————————————————————————————————————————
+    Γ ⊢ S: <App(App(App(-, x: A), y: B), z: C)>App(App(A, C), App(B, C))
+    
+    Γ ⊢ A: s^P    Γ ⊢ x: A    Γ ⊢ B: s^P    Γ ⊢ C: s^P
+    —————————————————————————————————————————————————————————————————
+    Γ ⊢ x: <App(App(App(S, -), y: B), z: C)>App(App(A, C), App(B, C))
+
+    Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ ⊢ y: B    Γ ⊢ C: s^P
+    —————————————————————————————————————————————————————————————————
+    Γ ⊢ y: <App(App(App(S, x: A), -), z: C)>App(App(A, C), App(B, C))
+
+    Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ ⊢ C: s^P    Γ ⊢ z: C
+    —————————————————————————————————————————————————————————————————
+    Γ ⊢ z: <App(App(App(S, x: A), y: B), -)>App(App(A, C), App(B, C))
+    ```
+
+  - E.g. Ambient `in: n[ in m.Q | R ] | m[ S ] ~> m[ n[ Q | R ] | S ]`
+                     `A     B C   D     B  E`
+
+    ```
+    Γ ⊢ A: s^N    Γ ⊢ m: A    Γ ⊢ B: s^N    Γ ⊢ n: B    Γ ⊢ C: s^P    Γ ⊢ Q: C    Γ ⊢ D: s^P    Γ ⊢ R: D    Γ ⊢ E: s^P
+    ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ n[ in m.Q | R ]: < - | (m: A)[ S: E ]>(m: A)[(n: B)[ C | D ] | E ]
+
+    Γ ⊢ A: s^N    Γ ⊢ m: A    Γ ⊢ B: s^N    Γ ⊢ C: s^P    Γ ⊢ D: s^P    Γ ⊢ E: s^P    Γ ⊢ S: E
+    ——————————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ m[ S ]: < (n: B)[ in (m: A).(Q: C) | (R: D) ] | ->(m: A)[(n: B)[ C | D ] | E ]
+
+    Γ ⊢ A: s^N    Γ ⊢ B: s^N    Γ ⊢ C: s^P    Γ ⊢ Q: C    Γ ⊢ D: s^P    Γ ⊢ E: s^P
+    ————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ Q: <(n: B)[ in (m: A).- | (R: D) ] | (m: A)[ S: E ]>(m: A)[(n: B)[ C | D ] | E ]
+
+    Γ ⊢ A: s^N    Γ ⊢ B: s^N    Γ ⊢ C: s^P    Γ ⊢ D: s^P    Γ ⊢ R: D    Γ ⊢ E: s^P
+    ————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ R: <(n: B)[ in (m: A).(Q: C) | - ] | (m: A)[ S: E ]>(m: A)[(n: B)[ C | D ] | E ]
+
+    Γ ⊢ A: s^N    Γ ⊢ B: s^N    Γ ⊢ C: s^P    Γ ⊢ D: s^P    Γ ⊢ E: s^P    Γ ⊢ S: E
+    ——————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ S: <(n: B)[ in (m: A).(Q: C) | (R: D) ] | (m: A)[ - ]>(m: A)[(n: B)[ C | D ] | E ]
+    ```
+
+  - What about ones where there's an exponential in the context?  E.g. Lambda `β: App(Lam(λx.C), D) ~> ev(λx.C, D)`
+
+    ```
+    Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
+    ——————————————————————————————————————————————————————
+    Γ ⊢ D: <App(Lam(λx:A.C), -)>B                        // B is structural type of ev(λx.C, D)?
     ```
 
 - App-like rules for rewrites using ev
 
-  - E.g. RHO.  TODO: how do we check that x is the same in A's type and E's structure?
+  - E.g. RHO.
 
       ```
-      1st slot
-      
-      Γ ⊢ A: < - | x: B ! (Q: C) > D    Γ ⊢ x: B    Γ ⊢ S: C
-      ——————————————————————————————————————————————————————
-      Γ ⊢ A | x!(S): ◇(D {S / Q})  <--- extract S using coalgebraic structure of term
+      Γ ⊢ A: Pi(x, B, C, λQ.D)          Γ ⊢ x: B    Γ ⊢ S: C    Γ ⊢ λQ.D: ∏(C, λQ.s)
+      Γ ⊢ A: < - | x: B ! (Q: C) > D    Γ ⊢ x: B    Γ ⊢ S: C    Γ ⊢ λQ.D: ∏_{Q: C}.s
+      ——————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ A | x!(S): ◇(D {S / Q})
+      Γ ⊢ A | x!(S): ◇ev(D, S)
       ```
-
-      ```
-      2nd slot
-      
-      Γ ⊢ A: < x: B ? (K: (∏_{y:C}. D)) | - > E    Γ ⊢ x: B  Γ ⊢ L: (∏_{y:C}. D)
-      ——————————————————————————————————————————————————————————————————————————
-      Γ ⊢ A | x?(L): ◇(E {L / K})
-      ```
-
-      A = x!c : < x: B ? (K: (∏_{y:C}. D)) | - > D(@c)
-      L = λy:C. (d:D(y))
-      
-      x!c | x?L ~> ev(L, @c): D(@c)
-      
-      
-
 
 - Cut-like rules...
 
@@ -449,3 +413,214 @@ Let me call the conclusion of a judgement an assertion.  We'll have id-like rule
 "If in some context Γ we can derive that A is a cube-sort refining the theory-sort of names, then from the added assumption that the variable x is of cube-sort A refining N we can derive that the variable x is of cube-sort A refining N."
 
 In the lambda-cube, types are also terms, so structural types fall out of the non-nullary term constructors.  So in the rho calculus, we have name types of the form @T where T is a process type.  Similarly, in the blue calculus, we have process types Var(T) where T is a name type.
+
+
+- Product- and abstraction-like rule for each slot of ⊙ in LHS rewrites, which induces a modality for terms in that slot.   The premises are judgments assigning a type to each rewrite constructor parameter. TODO: desugar syntax below to restate substitution using ev.
+
+  - E.g. Ambient.
+
+    - 1st slot of in, `in(n, m, Q, R, S): {n[in m.Q | R]} | m[S] ~> m[n[Q | R] | S]`
+    
+      We add a process constructor `<in1>:N x N x P x (P -> P) -> P`.
+      We write `<in1>(m, A, B, λS.C)` as `< - | (m: A)[S: B] >C`.
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ m: A    Γ ⊢ B: s₂^P    Γ, S: B ⊢ C: s₃^P
+      ———————————————————————————————————————————————————————————
+      Γ ⊢ < - | (m: A)[S: B] >C: s₃^P
+      Γ ⊢ <in1>(m, A, B, λS.C): s₃^P
+      ```
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ m: A    Γ ⊢ B: s₂^P    Γ, S: B ⊢ C: s₃^P    Γ ⊢ D: s₄^N    Γ ⊢ n: D    Γ ⊢ E: s₅^P    Γ ⊢ Q: E    Γ ⊢ F: s₆^P    Γ ⊢ R: F
+      ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ n[in m.Q | R] : < - | (m: A)[S: B] >C
+      Γ ⊢ n[in m.Q | R] : <in1>(m, A, B, λS.C)
+      ```
+
+      Problem with this rule: no relation between types involved in the premises for constructing the term and types in the dependent product.
+
+
+    - 2nd slot of in, `in(n, m, Q, R, S): n[in m.Q | R] | {m[S]} ~> m[n[Q | R] | S]`
+    
+      We add a process constructor `<in2>: N x N x N x (N x P x P -> P) -> P`.
+      We write `<in2>(A, m, B, C, D, λnQR.C)` as `< (n: A)[in (m: B).(Q: C) | (R: D)] | - >E`.
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ B: s₂^N    Γ ⊢ m: B    Γ ⊢ C: s₃^P    Γ ⊢ D: s₄^P    Γ, n: A, Q: C, R: D ⊢ E: s₅^P
+      —————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ < (n: A)[in (m: B).(Q: C) | (R: D)] | - >E: s₅^P
+      Γ ⊢ <in2>(A, m, B, C, D, λnQR.E): s₅^P
+      ```
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ B: s₂^N    Γ ⊢ m: B    Γ ⊢ C: s₃^P    Γ ⊢ D: s₄^P    Γ, n: A, Q: C, R: D ⊢ E: s₅^P    Γ ⊢ F: s₆^P    Γ ⊢ S: F
+      ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ m[S]: < (n: A)[in (m: B).(Q: C) | (R: D)] | - >E
+      Γ ⊢ m[S]: <in2>(A, m, B, C, D, λnQR.E)
+      ```
+
+      Problem with this rule: no relation between types involved in the premises for constructing the term and types in the dependent product.
+ 
+  - E.g. SKI
+
+    - 1st slot of σ1, `σ11:App([S], A) ~> S1(A)`
+    
+      We add a process constructor `<σ11>: P x (P -> P) -> P`.
+      We write `<σ11>(B, λA.C)` as `<σ1.App(-, A: B)>C`.
+      
+      ```
+      Γ ⊢ B: s₁^P    Γ, A: B ⊢ C: s₂^P
+      ————————————————————————————————
+      Γ ⊢ <σ1.App(-, A: B)>C: s₂^P
+      Γ ⊢ <σ11>(B, λA.C): s₂^P
+      ```
+      
+      ```
+      Γ ⊢ B: s₁^P    Γ, A: B ⊢ C: s₂^P    ???
+      ———————————————————————————————————————
+      Γ ⊢ ???: <σ1.App(-, A: B)>C
+      ```
+
+  - E.g. Lambda. Trouble in second slot because one shape in ev and therefore one type in context (input to pi type) is contravariant.
+
+    - 1st slot, `beta(K, Q): App([Lam(K)], Q) ~> ev(K, Q)`
+
+      We add a process constructor `<1>:P x (P -> P) -> P`.
+      We write `<1>(B, λy.C)` as `<App(-, y: B)>C`. Note that the parameters to <1> are the same as to ∏, as we expect for this modal type.
+
+      ```
+      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P
+      ——————————————————————————————————
+      Γ ⊢ <App(-, y: B)>C: s₃^P
+      Γ ⊢ <1>(B, λy.C): s₃^P
+      ```
+
+      ```
+      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ ⊢ K: ∏_{y: B}.C
+      —————————————————————————————————————————————————————
+      Γ ⊢ Lam(K) : <App(-, y: B)>C
+      Γ ⊢ Lam(K) : <1>(B, λy.C)
+      ```
+
+    - 2nd slot, `beta(K, Q): App(Lam(K), [Q]) ~> ev(K, Q)`
+
+      We add a process constructor `<2>:P x (P -> P) x ((P -> P) -> P) -> P`.
+      We write `<2>(B, λy.C, λK.D)` as `<App(Lam(K: ∏_{y: B}.C), -)>D`.
+
+      ```
+      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P
+      ——————————————————————————————————————————————————————————————
+      Γ ⊢ <App(Lam(K: ∏_{y: B}.C), -)>D: s₃^P
+      Γ ⊢ <2>(B, λy.C, λK.D): s₃^P
+      ```
+      
+      B = bool
+      C(y) = bool
+      K = a function from bool to bool
+      D(K) = if (ev(K, true)) then string else int
+      premises are met, so we can construct the modal type
+      
+
+      ```
+      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P    Γ, K: ∏_{y: B}.C ⊢ E: D
+      —————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ E: <App(Lam(K: ∏_{y: B}.C), -)>D
+      Γ ⊢ E: <2>(B, λy.C, λK.D)
+      ```
+
+      E(K) = if (ev(K, true)) then "hi" else 5
+      
+      But in the consequent, K is free in E, so the rule doesn't parse.  If we keep it as part of the typing context, then the rule isn't sound:
+
+      ```
+      Γ ⊢ B: s₁^P    Γ, y: B ⊢ C: s₂^P    Γ, K₁: ∏_{y: B}.C ⊢ D: s₃^P    Γ, K₂: ∏_{y: B}.C ⊢ E: D
+      ———————————————————————————————————————————————————————————————————————————————————————————
+      Γ, K₂: ∏_{y: B}.C ⊢ E: <App(Lam(K₁: ∏_{y: B}.C), -)>D
+      Γ, K₂: ∏_{y: B}.C ⊢ E: <2>(B, λy.C, λK₁.D)
+      ```
+
+      App(Lam(K₁, E) ~> ev(K₁, E), but E is not bool, so it'll be some implementation-dependent type, not necessarily D.
+
+      Here are sound restrictions, but I don't know how to derive them:
+      
+      ```
+      Γ ⊢ B: s₁^P    Γ ⊢ C: s₂^P
+      ———————————————————————————————————
+      Γ ⊢ <App(Lam(K: B => C), -)>C: s₂^P
+      Γ ⊢ <2>(B, C): s₂^P
+      ```
+
+      ```
+      Γ ⊢ B: s₁^P    Γ ⊢ C: s₂^P    Γ ⊢ Q: B
+      ——————————————————————————————————————
+      Γ ⊢ Q: <App(Lam(K: B => C), -)>C
+      Γ ⊢ Q: <2>(B, C)
+      ```
+      
+      - call/cc
+
+        Suppose we capture the current continuation via Q = (call/cc S). 
+        
+        ```
+        App(Lam(K: ∏_{y: B}.C), (call/cc S)) = ev(S, λb.App(Lam(K: ∏_{y: B}.C), b))
+        ```
+        
+        ```
+        Γ, K: ∏_{y: B}.C ⊢ D: s^P    Γ ⊢ S: ∏_{z: ∏_{b: B}.◇C{b/y}}.???
+        ————————————————————————————————————————————————————
+        Γ ⊢ (call/cc S) : <App(Lam(K: ∏_{y: B}.C), -) >D
+        Γ ⊢ (call/cc S) : <2>(B, λy.C, λK.D)
+        ```
+        
+        Note however that call/cc captures the whole context, not just up to the App.
+        Maybe call-with-current-delimited-continuation?
+
+  - E.g. RHO 
+
+    - 1st slot, `comm(x, K, Q): [x?K] | x!Q ~> ev(K, @Q)`
+
+      We add a process constructor `<1>:N x N x P x (N -> P) -> P`.
+      We treat `K` as `λy.L` of type `∏_{y: @B}.C` and write `<1>(x, A, B, λy.C)` as `< - | x: A!(Q: B) > C{@Q/y}`. Note that the parameters to <1> are the same as to ∏ except for the channel and channel type, as we expect for this modal type.
+
+      ```    
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: @B ⊢ C: s₃^P
+      ————————————————————————————————————————————————————————————
+      Γ ⊢ < - | x: A ! (Q: B) > C {@Q/y}: s₃^P
+      Γ ⊢ <1>(x, A, B, λy.C): s₃^P
+      ```
+
+      We treat `K` as `λy.L` of type `∏_{y: @B}.C` and use an uncurried version as the xth premise:
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: @B ⊢ C: s₃^P    Γ, y: @B ⊢ L: C
+      ———————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ x ? (λy.L) : < - | x: A ! (Q: B) > C{@Q/y}
+      Γ ⊢ x ? (λy.L) : <1>(x, A, B, λy.C)
+      ```
+
+  - 2nd slot, `comm(x, K, Q): x?K | [x!Q] ~> ev(K, @Q)`
+
+      We add a process constructor `<2>:N x N x N x (N -> P) x ((N -> P) -> P) -> P`.
+      We write `<2>(x, A, B, λy.C, λK.D)` as `< x:A ? (K: ∏_{y: B}.C) | - >D`.
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^N    Γ, y: B ⊢ C: s₃^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P
+      —————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ < x:A ? (K: ∏_{y: B}.C) | - > D: s₃^P
+      Γ ⊢ <2>(x, A, B, λy.C, λK.D): s₃^P
+      
+      ```
+
+      ```
+      Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^N    Γ, y: B ⊢ C: s₃^P    Γ, K: ∏_{y: B}.C ⊢ D: s₃^P    Γ ⊢ Q: B
+      —————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ x ! Q : < x: A ? (K: ∏_{y: B}.C) | - > D
+      Γ ⊢ x ! Q : <2>(x, A, B, λy.C, λK.D)
+      ```
+
+      This has the same problem as the analogous construction in λ-calculus.
+
+
+
+K( P( x, Q ), E( x’, F ) ) -> K( Qu, Fv )
