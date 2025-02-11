@@ -89,7 +89,7 @@ Given an interactive finitely-presented GSLT T, produce new typed GSLT.
       
       κ2: P x P -> R
       κ2: App(K1(x), y) ~> x
-            
+
       ι1: P -> R
       ι1: App(I, x) ~> x
       
@@ -336,11 +336,11 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
 
   - What about ones where there's an exponential in the context?  E.g. Lambda `β: App(Lam(λx.C), D) ~> ev(λx.C, D)`
-
     ```
-    Γ ⊢ A: s^P    Γ ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
-    ——————————————————————————————————————————————————————
-    Γ ⊢ D: <App(Lam(λx:A.C), -)>B                         // B is structural type of ev(λx.C, D)?
+    Γ ⊢ A: s^P    Γ, x: A ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
+    ————————————————————————————————————————————————————————————
+    Γ ⊢ D: <App(Lam(λx.C: ∏x:A.B), -)>ev(λx.B, D)
+    Γ ⊢ D: <β>(A, λx.C, λx.B, D)
     ```
 
 - Conv can be used in any modality context:
