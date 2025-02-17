@@ -1,5 +1,12 @@
 Given an interactive finitely-presented GSLT T, produce new typed GSLT.
 
+Fn sym arrows o: X1 x ... x Xn -> Y are sugar for Γ ⊢ t1: X1 ... Γ ⊢ tn: Xn ⊨ Γ ⊢ o(t1, ..., tn): Y.
+Rewrite squiggly arrows ρ: os(t1, ..., tn) ~> ot(t1, ..., tn) are sugar for 
+    Γ ⊢ t1: X1 ... Γ ⊢ tn: Xn ⊨ Γ ⊢ s(ρ(t1, ..., tn)) = os(t1, ..., tn)
+    Γ ⊢ t1: X1 ... Γ ⊢ tn: Xn ⊨ Γ ⊢ t(ρ(t1, ..., tn)) = ot(t1, ..., tn)
+Equations os(t1, ..., tn) = ot(t1, ..., tn) are sugar for 
+    Γ ⊢ t1: X1 ... Γ ⊢ tn: Xn ⊨ Γ ⊢ os(t1, ..., tn) = ot(t1, ..., tn)
+
 - E.g. RHO calculus
 
     ```
@@ -118,7 +125,9 @@ Given an interactive finitely-presented GSLT T, produce new typed GSLT.
     eqns
       comm. mon.
       νx.νy.P = νy.νx.P
-      νv.νx.P = νx.P
+      νx.νx.P = νx.P
+      
+      Γ, x: N ⊢ Q1: P    Γ ⊢ Q2: P    ⊨    Γ ⊢ (νx.Q1) | Q2 = νx.(Q1 | Q2)
 
     rewrites
       expand: P -> R
@@ -196,7 +205,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ λx.C: ∏(A, λx.B)
     ```
     
-- Dependent-product-like and Abs-like rules for term constructors taking exponential objects as parameters
+- Dependent-product-like and Abs-like rules for term constructors taking exponential objects as parameters.
 
   - E.g. λ-calc
 
@@ -218,22 +227,85 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       ```
       Γ ⊢ A: s₁^N    Γ, x: A ⊢ B: s₂^P
       ————————————————————————————————
+      Γ ⊢ Nu(x:A.B): s₂^P
       Γ ⊢ Nu(A, λx.B): s₂^P
+      ```
+
+      ```
+      Usual: x is a var of type A, Nu(x:A.B) is the type of a process that may communicate on x
+      Γ ⊢ A: *^N    Γ, x: A ⊢ B: *^P
+      ——————————————————————————————
+      Γ ⊢ Nu(x:A.B): *^P
+      Γ ⊢ Nu(A, λx.B): *^P
+
+      Or does it use a Pi type in the premise?
+      Γ ⊢ A: *^N    Γ ⊢ K: ∏x:A.*^P
+      ——————————————————————————————
+      Γ ⊢ Nu(K): *^P
+      Γ ⊢ Nu(A, K): *^P
+
+      Γ ⊢ A: *^N    Γ, x: A ⊢ B: *^P    Γ, x: A ⊢ C: B
+      ————————————————————————————————————————————————
+      Γ ⊢ New(λx.C) : Nu(A, λx.B)
+
+
+
+      Polymorphic: x is a new nominal type, Nu(x:*.B) is the type of a process that may use that type (including to communicate on if the For rule allows types in name position).  But it's not clear how to produce values of that new type x.  Of course, we can always create a *name* of that type via `new y:x.P`.
+
+      Γ ⊢ *: □^N    Γ, x: * ⊢ B: *^P
+      ——————————————————————————————
+      Γ ⊢ Nu(x:*.B): *^P
+      Γ ⊢ Nu(*, λx.B): *^P
+
+      Γ ⊢ *: □^N    Γ, x: * ⊢ B: *^P    Γ, x: * ⊢ C: B
+      ————————————————————————————————————————————————
+      Γ ⊢ New(λx.C) : Nu(A, λx.B)
+
+
+
+      Type constructor: x is a type, Nu(x:*.B) is the kind of a type-process.  Something like List[new x], a list of things of a new type.  But not clear how to create a value of that new type.  Of course, we can always create a *name* of that type via `new y:x.P`.
+      
+      Γ ⊢ *: □^N    Γ, x: * ⊢ B: □^P
+      ——————————————————————————————
+      Γ ⊢ Nu(x:*.B): □^P
+      Γ ⊢ Nu(*, λx.B): □^P
+
+      Γ ⊢ *: □^N    Γ, x: * ⊢ B: □^P    Γ, x: * ⊢ C: B
+      ——————————————————————————————————————————————————
+      Γ ⊢ New(λx.C) : Nu(A, λx.B)
+
+
+
+      Dependent: x is a var of type A, Nu(x:A.B) is the kind of a type-process.  But what does that type process do?  ∏x:A.B is a struct type, a product of types B(x) over all x:A; a value of the struct type has a value v(x): B(x) for each x.  Σx:A.B is a union type, a sum of types B(x) over all x:A; a value of the union type has a value v(x) for some x.  What's a "Nu" over all x:A?  What's a value of the Nu type?
+
+      Pi and sigma are right and left adjoints to change of base, respectively.
+          https://ncatlab.org/nlab/show/dependent+product#definitions
+          https://ncatlab.org/nlab/show/dependent+sum#definition
+      Is there a similar characterization of Nu?
+
+      Γ ⊢ A: *^N    Γ, x: A ⊢ B: □^P
+      ——————————————————————————————
+      Γ ⊢ Nu(x:A.B): □^P
+      Γ ⊢ Nu(A, λx.B): □^P
+
+      Γ ⊢ A: *^N    Γ, x: A ⊢ B: □^P    Γ, x: A ⊢ C: B
+      ————————————————————————————————————————————————
+      Γ ⊢ New(λx.C) : Nu(A, λx.B)
       ```
 
       ```
       Γ ⊢ A: s₁^N    Γ, x: A ⊢ B: s₂^P    Γ, x: A ⊢ C: B
       ——————————————————————————————————————————————————
-      Γ ⊢ New(λx.B) : Nu(A, λx.C)
+      Γ ⊢ New(λx.C) : Nu(A, λx.B)
       ```
-
+      
     - For
 
       ```
       Γ ⊢ A: s₁^N    Γ ⊢ x: A    Γ ⊢ B: s₂^P    Γ, y: B ⊢ C: s₃^P
       ———————————————————————————————————————————————————————————
-      Γ ⊢ Pi(x, A, B, λy.C)
-      Γ ⊢ Pi_{y: B <- x: A}.C
+      Γ ⊢ Pi_{y: B <- x: A}.C: s₃^P
+      Γ ⊢ Pi(x, A, B, λy.C): s₃^P
       ```
       
       ```
@@ -279,7 +351,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ A: ◇*B
     ```
 
-- Modalities from all process-shaped subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).
+- Modalities from all process-shaped subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).  In this approach, the types aren't dependent.  For example, in the first SKI inference rule below, the term doesn't have access to z, so even though the result type does, the result type isn't actually dependent.  Also, we can't make S, x, or y depend on z because z would be free in the conclusion.
 
   - E.g. SKI `σ: App(App(App(S, x), y), z) ~> App(App(x, z), App(y, z)`
                                `A   B   C`
@@ -335,7 +407,8 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ S: <(n: B)[ in (m: A).(Q: C) | (R: D) ] | (m: A)[ - ]>(m: A)[(n: B)[ C | D ] | E ]
     ```
 
-  - What about ones where there's an exponential in the context?  E.g. Lambda `β: App(Lam(λx.C), D) ~> ev(λx.C, D)`
+  - What about ones where there's an exponential in the context?  E.g. Lambda `β: App(Lam(λx.C), D) ~> ev(λx.C, D)`.  Here we can put x into the context for B and C.  For example, suppose that A is bool, B is int + string (existential type).  Then ev(λx.B, D) will be either int or string.  But bool might be a subset of the values that we could put in the second slot to get one of those results, so the inference rule ends up weakening the type of D.  Is the 
+
     ```
     Γ ⊢ A: s^P    Γ, x: A ⊢ B: s^P    Γ, x: A ⊢ C: B    Γ ⊢ D: A
     ————————————————————————————————————————————————————————————
