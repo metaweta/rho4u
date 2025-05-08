@@ -168,12 +168,13 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 
 - Axiom
 
-    Add term constructors `type^T, kind^T: 1 -> T` for each shape T in the theory.
+    Add term constructors `*^T, □^T: 1 -> T` for each shape T in the theory.
+    
 
 - Start
 
     ```
-    Γ ⊢ A: s_X
+    Γ ⊢ A: s
     ——————————————
     Γ, x: A ⊢ x: A
     ```
@@ -186,7 +187,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ, x: C ⊢ A: B
     ```
       
-- Product, abstraction
+- Dependent product, abstraction, application, beta equivalence as part of lambda theory
 
     Add a term constructor `∏: T x (T -> T') -> T'` for each pair of shapes T, T' in the theory.
     We write `∏(A, λx.B)` as `∏_{x: A}.B`.
@@ -204,7 +205,242 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     Γ ⊢ λx.C: ∏_{x: A}.B
     Γ ⊢ λx.C: ∏(A, λx.B)
     ```
+
+    ```
+    Γ ⊢ C: ∏(A, λx.B)    Γ ⊢ D: A
+    Γ ⊢ C: ∏_{x: A}.B    Γ ⊢ D: A
+    —————————————————————————————
+    Γ ⊢ (C D): B[D / x]
+    Γ ⊢ (C D): (λx.B D)
+    ```
+
+    Beta rules from lambda cube article...
     
+- For each term constructor, a pair of functions (one for structural type, one for term) and inference rules for principal structural types.
+
+  - E.g. RHO calc
+
+      ```
+      ———————————
+      ⊢ 00^s: s^P
+      
+      ———————————
+      ⊢ 0^s: 00^s
+      
+
+
+      ————————————————————————————————
+      ⊢ ||: ∏_{A: s^P}.∏_{B: s^P}.s^P 
+      
+      Γ ⊢ A: s^P
+      —————————————————
+      Γ ⊢ ||(A, 00^s) = A
+      
+      Γ ⊢ A: s^P  Γ ⊢ B: s^P
+      ———————————————————————
+      Γ ⊢ ||(A, B) = ||(B, A)
+      
+      Γ ⊢ A: s^P  Γ ⊢ B: s^P  Γ ⊢ C: s^P
+      —————————————————————————————————————
+      Γ ⊢ ||(||(A, B), C) = ||(A, ||(B, C))      
+
+
+
+      ———————————————————————————————————————————————————————
+      ⊢ |: ∏_{A: s^P}.∏_{B: s^P}.∏_{C: A}.∏_{D: B}.||(A, B) 
+
+      Γ ⊢ A: s^P  Γ ⊢ C: A
+      ——————————————————————————
+      Γ ⊢ |(A, 00^s, C, 0^s) = C
+      
+      Γ ⊢ A: s^P  Γ ⊢ B: s^P  Γ ⊢ C: A  Γ ⊢ D: B
+      ——————————————————————————————————————————
+      Γ ⊢ |(A, B, C, D) = |(B, A, D, C)
+      
+      Γ ⊢ A: s^P  Γ ⊢ B: s^P  Γ ⊢ C: s^P  Γ ⊢ D: A  Γ ⊢ E: B  Γ ⊢ F: C
+      ———————————————————————————————————————————————————————————————————————
+      Γ ⊢ |(||(A, B), C, |(A, B, D, E), F) = |(A, ||(B, C), D, |(B, C, E, F))      
+
+
+      
+      ————————————————————————————————————————————
+      ⊢ !!: ∏_{A: s₁^N}.∏_{B: s₂^P}.∏_{x: A}.s₁^P
+      
+      ———————————————————————————————————————————————————————————
+      ⊢ !: ∏_{A: s₁^N}.∏_{B: s₂^P}.∏_{x: A}.∏_{Q: B}.!!(A, B, x)
+      
+
+
+      ————————————————————————————————————————————————————— // result sort is a choice, but must match !! because of comm
+      ⊢ forfor: ∏_{A: s₁^N}.∏_{B: s₂^{N->P}}.∏_{x: A}.s₁^P
+      
+      ————————————————————————————————————————————————————————————————————
+      ⊢ for: ∏_{A: s₁^N}.∏_{B: s₂^{N->P}}.∏_{x: A}.∏_{K: B}.forfor(A, B)
+      
+
+
+      —————————————————————
+      ⊢ @@: ∏_{A: s^P}.s^N
+      
+      ———————————————————————————————
+      ⊢ @: ∏_{A: s^P}.∏_{B: A}.@@(A)
+      
+      —————————————————————
+      ⊢ **: ∏_{A: s^N}.s^P
+      
+      ———————————————————————————————
+      ⊢ *: ∏_{A: s^N}.∏_{x: A}.**(A)
+      
+      Γ ⊢ A: s^P
+      —————————————————
+      Γ ⊢ **(@@(A)) = A
+
+      Γ ⊢ A: s^N
+      —————————————————
+      Γ ⊢ @@(**(N)) = N
+      
+      Γ ⊢ A: s^P  Γ ⊢ B: A
+      —————————————————————————
+      Γ ⊢ *(@@(A), @(A, B)) = B
+
+      Γ ⊢ A: s^N  Γ ⊢ B: A
+      —————————————————————————
+      Γ ⊢ @(**(A), *(A, B)) = B
+
+
+      // Rewrites
+      
+      —————————————————————————————————
+      ⊢ srcsrc, tgttgt: ∏_{A: s^R}.s^P
+      
+      —————————————————————————————————————————————————
+      ⊢ src, tgt: ∏_{A: s^R}.∏_{r: A}.srcsrc/tgttgt(A)
+      
+      // Non-dependent
+      
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A
+      ——————————————————————————————————————————————— y # C
+      Γ ⊢ commcomm(A, ∏_{y:@@(B)}.C, x): s₁^R
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A  Γ, y: @@(B) ⊢ L: C  Γ ⊢ Q: B
+      ————————————————————————————————————————————————————————————————————————————— y # C
+      ⊢ comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q): commcomm(A, ∏_{y:@@(B)}.C, x)
+      
+      // Dependent
+      
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ, y: @@(B) ⊢ C: s₁^P  Γ ⊢ x: A
+      —————————————————————————————————————————————————————————
+      Γ ⊢ commcomm(A, ∏_{y:@@(B)}.C, x): s₁^R
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ, y: @@(B)⊢ C: s₁^P  Γ ⊢ x: A  Γ, y: @@(B) ⊢ L: C  Γ ⊢ Q: B
+      ——————————————————————————————————————————————————————————————————————————————————————
+      ⊢ comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q): commcomm(A, ∏_{y:@@(B)}.C, x)
+
+      
+      ——————————————————————————————————————
+      ⊢ par1par1: ∏_{A: s^R}.∏_{B: s^P}.s^R
+      
+      ————————————————————————————————————————————————————————————————
+      ⊢ par1: ∏_{A: s^R}.∏_{B: s^P}.∏_{r: A}.∏_{Q: B}.par1par1(A, B)
+      
+      ——————————————————————————————————————
+      ⊢ par2par2: ∏_{A: s^R}.∏_{B: s^R}.s^R
+      
+      ————————————————————————————————————————————————————————————————
+      ⊢ par2: ∏_{A: s^R}.∏_{B: s^R}.∏_{r1: A}.∏_{r2: B}.par2par2(A, B)
+      
+      
+      
+      ////////////// Non-dependent continuation type //////////
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A
+      ———————————————————————————————————————————————— y # C
+      Γ ⊢ srcsrc(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   ||(!!(A, B, x), forfor(A, ∏_{y:@@(B)}.C, x))
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A  Γ, y:@@(B) ⊢ L: C  Γ ⊢ Q: B
+      ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————— y # C
+      Γ ⊢ src(commcomm(A, ∏_{y:@@(B)}.C, x), comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q)): srcsrc(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   |(!!(A, B, x), forfor(A, ∏_{y:@@(B)}.C, x), !(A, B, x, Q), for(A, ∏_{y:B}.C, x, λy:@@(B).L)): ||(!!(A, B, x), forfor(A, ∏_{y:@@(B)}.C, x))
+      
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A
+      ———————————————————————————————————————————————— y # C
+      Γ ⊢ tgttgt(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   C
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ ⊢ C: s₁^P  Γ ⊢ x: A  Γ, y:@@(B) ⊢ L: C  Γ ⊢ Q: B
+      ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————— y # C
+      Γ ⊢ tgt(commcomm(A, ∏_{y:@@(B)}.C, x), comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q)): tgttgt(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   ((λy:@@(B).L) @(B, Q)): C
+
+
+      ////////////// Dependent continuation type: no type equations //////////
+
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ, y: @@(B) ⊢ C: s₁^P  Γ ⊢ x: A  Γ, y: @@(B) ⊢ L: C  Γ ⊢ Q: B
+      ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ src(commcomm(A, ∏_{y:@@(B)}.C, x), comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q)): srcsrc(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   |(!!(A, B, x), forfor(A, ∏_{y:@@(B)}.C, x), !(A, B, x, Q), for(A, ∏_{y:B}.C, x, λy:@@(B).L)): ||(!!(A, B, x), forfor(A, ∏_{y:@@(B)}.C, x))
+      
+      Γ ⊢ A: s₁^N  Γ ⊢ B: s₂^P  Γ, y: @@(B) ⊢ C: s₁^P  Γ ⊢ x: A  Γ, y:@@(B) ⊢ L: C  Γ ⊢ Q: B
+      ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+      Γ ⊢ tgt(commcomm(A, ∏_{y:@@(B)}.C, x), comm(A, ∏_{y:@@(B)}.C, x, λy:@@(B).L, Q)): tgttgt(commcomm(A, ∏_{y:@@(B)}.C, x))
+      .   ==
+      .   ((λy:@@(B).L) @(B, Q)): (λy: @@(B).C @(B, Q))
+
+
+      ////////////// Context rules //////////
+
+      Γ ⊢ A: s^R  Γ ⊢ B: s^P
+      ——————————————————————————
+      Γ ⊢ srcsrc(par1par1(A, B))
+      .   ==
+      .   ||(srcsrc(A), B)
+
+      Γ ⊢ A: s^R  Γ ⊢ B: s^P  Γ ⊢ C: A  Γ ⊢ D: B
+      —————————————————————————————————————————————————————————————————
+      Γ ⊢ src(par1par1(A, B), par1(A, B, C, D)): srcsrc(par1par1(A, B))
+      .   ==
+      .   |(srcsrc(A), B, src(A, C), D): ||(srcsrc(A), B)
+
+      Γ ⊢ A: s^R  Γ ⊢ B: s^P
+      ——————————————————————————
+      Γ ⊢ tgttgt(par1par1(A, B))
+      .   ==
+      .   ||(tgttgt(A), B)
+
+      Γ ⊢ A: s^R  Γ ⊢ B: s^P  Γ ⊢ C: A  Γ ⊢ D: B
+      —————————————————————————————————————————————————————————————————
+      Γ ⊢ tgt(par1par1(A, B), par1(A, B, C, D)): tgttgt(par1par1(A, B))
+      .   ==
+      .   |(tgttgt(A), B, tgt(A, C), D): ||(tgttgt(A), B)
+      
+      // Reduction context distributes over modality
+      
+      Q:A ~> Q':A'
+      
+      Γ ⊢ A': s^P  Γ ⊢ Q: ◊A'  Γ, Y: s^P, y: Y ⊢ B: s^P     // A' and Y are the same sort because Q:◊A' replaces y:Y
+      ————————————————————————————————————————————————— K[Y, y]: B
+      Γ ⊢ K[◊A'/Y][Q/y]: B[◊A' / Y][Q / y]  // have
+      Γ ⊢ K[◊A'/Y][Q/y]: ◊B[A' / Y][Q' / y] // want
+
+
+      // Non-dependent B
+      Γ ⊢ A': s^P  Γ ⊢ Q: ◊A'  Γ, Y: s^P ⊢ B: s^P
+      ——————————————————————————————————————————— K[Y]: B, y # B  Can do polymorphic, type operator, non-dependent
+      Γ ⊢ K[◊A'/Y][Q/y]: B[◊A' / Y]
+      Γ ⊢ K[◊A'/Y][Q/y]: ◊B[A' / Y]
+      
+      // Dependent B requires witness, so ◊ has to track the witness
+      Γ ⊢ A': s^P  Γ ⊢ Q: ◊(Q':A')  Γ, Y: s^P, y: Y ⊢ B: s^P     // A' and Y are the same sort because Q:◊A' replaces y:Y
+      —————————————————————————————————————————————————————— K[Y, y]: B
+      Γ ⊢ K[◊A'/Y][Q/y]: ◊(K[A'/Y][Q'/y]: B[A' / Y][Q' / y])
+      ```
+
 - Dependent-product-like and Abs-like rules for term constructors taking exponential objects as parameters.
 
   - E.g. λ-calc
@@ -232,7 +468,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       ```
 
       ```
-      Usual: x is a var of type A, Nu(x:A.B) is the type of a process that may communicate on x
+      Usual: x is a fresh name (A: *^N) of type A, Nu(x:A.B) is the type of a process that may communicate on x
       Γ ⊢ A: *^N    Γ, x: A ⊢ B: *^P
       ——————————————————————————————
       Γ ⊢ Nu(x:A.B): *^P
@@ -241,7 +477,6 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Or does it use a Pi type in the premise?
       Γ ⊢ A: *^N    Γ ⊢ K: ∏x:A.*^P
       ——————————————————————————————
-      Γ ⊢ Nu(K): *^P
       Γ ⊢ Nu(A, K): *^P
 
       Γ ⊢ A: *^N    Γ, x: A ⊢ B: *^P    Γ, x: A ⊢ C: B
@@ -250,7 +485,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 
 
 
-      Polymorphic: x is a new type, Nu(x:*.B) is the type of a process that may use that type (including to communicate on if the For rule allows types in name position).  But it's not clear how to produce values of that new type x.  Of course, we can always create a *name* of that type via `new y:x.P`.
+      Polymorphic: specializing to A=*, x is a fresh name type (*: □^N) that can be used in the process B.  We can create a name of type x via new y:x.P in B.
 
       Γ ⊢ *: □^N    Γ, x: * ⊢ B: *^P
       ——————————————————————————————
@@ -263,7 +498,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 
 
 
-      Type constructor: x is a type, Nu(x:*.B) is the kind of a type-process.  Something like List[new x], a list of things of a new type.  But not clear how to create a value of that new type.  Of course, we can always create a *name* of that type via `new y:x.P`.
+      Type constructor: specializing to A=*, x is a fresh name type (*: □^N) that can be used in the process type B.  Nu(x:*.B) is the kind of a type-process.  Something like List[new x], a list of things of a new type.  We can create a name of type x via `new y:x.P`.
 
       Γ ⊢ *: □^N    Γ, x: * ⊢ B: □^P
       ——————————————————————————————
@@ -276,12 +511,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 
 
 
-      Dependent: x is a var of type A, Nu(x:A.B) is the kind of a type-process.  But what does that type process do?  ∏x:A.B is a struct type, a product of types B(x) over all x:A; a value of the struct type has a value v(x): B(x) for each x.  Σx:A.B is a union type, a sum of types B(x) over all x:A; a value of the union type has a value v(x) for some x.  What's a "Nu" over all x:A?  What's a value of the Nu type?
-
-      Pi and sigma are right and left adjoints to change of base, respectively.
-          https://ncatlab.org/nlab/show/dependent+product#definitions
-          https://ncatlab.org/nlab/show/dependent+sum#definition
-      Is there a similar characterization of Nu?
+      Dependent: x is a var of type A, Nu(x:A.B) is the kind of a struct-like process: for each choice of x:A, a fresh type B depending on x.  We can create a name of type B(x) via new y: B where x is in scope
 
       Γ ⊢ A: *^N    Γ, x: A ⊢ B: □^P
       ——————————————————————————————
@@ -319,8 +549,8 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 
       Specializing to A=*:
       ```
-      Γ ⊢ *: □^N    Γ ⊢ x: *    Γ ⊢ B: *^N    Γ, y: B ⊢ C: *^P
-      ———————————————————————————————————————————————————————————
+      Γ ⊢ *^N: □^N    Γ ⊢ x: *^N    Γ ⊢ B: *^N    Γ, y: B ⊢ C: *^P
+      —————————————————————————————————————————————————————————————
       Γ ⊢ Phi_{y: B <- x: *}.C: *^P
       Γ ⊢ Phi(x, *, B, λy.C): *^P
       ```
@@ -349,7 +579,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Γ ⊢ for(x, λy.D): Phi(x, A, *, λy.C)
       ```
 
-      Binder Dependent: types compete with terms for messages
+      Binder Dependent: Rewrites can only occur on the same side of the colon, so may proceed independently.
 
       Specializing to C=*:
       ```
@@ -366,66 +596,59 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Γ ⊢ for(x, λy.D): Phi(x, A, B, λy.*)
       ```
 
-      Problem with assuming that there's a separate compile time phase:
-      Assume x # R
-      ((for (z <- x) P) : Q) | (R: (for(y <- x) D)) | x!(S)
-                             | compile time, types always win
-                             V
-      ((for (z <- x) P) : Q) | (R: ◇D(@S))
-
-      ((for (z <- x) P) : Q) | (R: (for(y <- x) D)) | x!(S)
-                             | run time with type erasure, terms always win
-                             V
-      (P(@S)) | (R: (for(y <- x) D))
       
-      For dependently typed for, where types compete with terms, there's only runtime.
 
 - Conv-like rule
 
-    `◇: P -> P`
+    `◊: P -> P`
 
     ```
     Γ ⊢ A: s
     ——————————
-    Γ ⊢ ◇A: s
+    Γ ⊢ ◊A: s
     ```
     
     ```
     Γ ⊢ A: s    Γ ⊢ B: A    Γ ⊢ ρ: B ~> B'    Γ ⊢ B': A'
     ————————————————————————————————————————————————————
-    Γ ⊢ B: ◇A'
+    Γ ⊢ B: ◊A'
     ```
 
-    `◇*: P -> P`
+    `◊*: P -> P`
     
     ```
     Γ ⊢ A: B
     ———————————
-    Γ ⊢ A: ◇*B
+    Γ ⊢ A: ◊*B
     ```
 
     ```
-    Γ ⊢ A: ◇◇*B
+    Γ ⊢ A: ◊◊*B
     —————————————
-    Γ ⊢ A: ◇*B
+    Γ ⊢ A: ◊*B
     ```
 
     ```
-    Γ ⊢ A: ◇*◇*B
+    Γ ⊢ A: ◊*◊*B
     —————————————
-    Γ ⊢ A: ◇*B
+    Γ ⊢ A: ◊*B
     ```
 
-- Modalities from all process-shaped subterms of LHS of rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).  In this approach, the types aren't dependent.  For example, in the first SKI inference rule below, the term doesn't have access to z, so even though the result type does, the result type isn't actually dependent.  Also, we can't make S, x, or y depend on z because z would be free in the conclusion.
+- Modalities from all process-shaped subterms of LHS of base rewrites.  RHS gets turned into structural type.  Structural type has only type info in a slot when the type is a process; when it's not a process, the value is also part of the type (e.g. names in ambient/pi/RHO).  In this approach, the types aren't dependent.  For example, in the first SKI inference rule below, the term doesn't have access to z, so even though the result type does, the result type isn't actually dependent.  Also, we can't make S, x, or y depend on z because z would be free in the conclusion.
 
-  Also 
+  Also laws based on context rewrites.
 
   ```
   Γ ⊢ <K(-)>B: □
   ————————————————————
-  Γ ⊢ K(<K(-)>B) = ◇B
+  Γ ⊢ K(<K(-)>B) = ◊B
   ```
   
+  ```
+  Γ ⊢ A: B
+  ——————————————
+  Γ ⊢ K(A): K(B)
+  ```
 
   - E.g. SKI `σ: App(App(App(S, x), y), z) ~> App(App(x, z), App(y, z)`
                                `A   B   C`
@@ -433,7 +656,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
     Γ ⊢ A: s^P    Γ ⊢ x: A    Γ ⊢ B: s^P    Γ ⊢ y: B    Γ ⊢ C: s^P
     ——————————————————————————————————————————————————————————————
-    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(A, C), App(B, C))
+    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(A, C), App(B, C)) // Do we need a freshness assertion for z?
     
     Γ ⊢ A: s^P    Γ ⊢ x: A    Γ ⊢ B: s^P    Γ ⊢ C: s^P
     —————————————————————————————————————————————————————————————————
@@ -457,13 +680,23 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     ```
 
     How do we get something like an arrow type from this?
-    S: (A=>B=>C) => (A=>B) => A => C
+    S: (C=>B=>A) => (C=>B) => C => A
+
+    We need a context rule like
     
-    Γ ⊢ <App(-, A)><App(-, B)>C: *^P    Γ ⊢ x: <App(-, A)><App(-, B)>C    Γ ⊢ <App(-, A)>B: *^P    Γ ⊢ y: <App(-, A)>B    Γ ⊢ A: *^P
+    Γ, ρ: S ~> T ⊢ χ(ρ): K(S) ~> K'(T)    Γ ⊢ A: s₁    Γ ⊢ T: A
+    ———————————————————————————————————————————————————————————
+    Γ ⊢ K(S): ◊K'(A)
+    
+    That is, because of ρ, S:◊A, so we could already derive K(S): K(◊A).  This is necessary to pull the diamond past the K.
+
+    Γ ⊢ <App(-, C)><App(-, B)>A: *^P    Γ ⊢ x: <App(-, C)><App(-, B)>A    Γ ⊢ <App(-, C)>B: *^P    Γ ⊢ y: <App(-, C)>B    Γ ⊢ C: *^P
     ————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(<App(-, A)><App(-, B)>C, A), <App(-, A)>B)
-    ———————————————————————————————————————————————————————————————————————————————————————
-    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(<App(-, A)><App(-, B)>C, A), <App(-, A)>B)
+    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(App(<App(-, C)><App(-, B)>A, C), App(<App(-, C)>B, C))
+    ———————————————————————————————————————————————————————————————————————————————————————————————
+    Γ ⊢ App(App(S, x), y): <App(-, z: C)>App(◊<App(-, B)>A, ◊B)    Γ, ρ: S ~> T ⊢ head:App(S, Q) ~> App(T, Q)
+    ———————————————————————————————————————————————————————————————————————————————————————————————————————————— // what's this rule?  Need conversion rule that uses K.
+    Γ ⊢ App(App(S, x), y): <App(-, z: C)>◊◊A
 
   - E.g. Ambient `in: n[ in m.Q | R ] | m[ S ] ~> m[ n[ Q | R ] | S ]`
                      `A     B C   D     B  E`
@@ -502,15 +735,15 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
 - Conv can be used in any modality context:
 
     ```
-    Γ ⊢ A: ◇B    Γ ⊢ ρ: B ~> B'
+    Γ ⊢ A: ◊B    Γ ⊢ ρ: B ~> B'
     —————————————————————————————
-    Γ ⊢ A: ◇◇B'
+    Γ ⊢ A: ◊◊B'
     ```
 
     ```
     Γ ⊢ A: <B>C    Γ ⊢ ρ: C ~> C'
     —————————————————————————————
-    Γ ⊢ A: <B>◇C'
+    Γ ⊢ A: <B>◊C'
     ```
 
   - E.g. SKI
@@ -520,7 +753,7 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
     —————————————————————————————————————————————————————————————— modality
     Γ ⊢ App(App(S, K), K): <App(-, z: C)>App(App(K, C), App(K, C))    Γ ⊢ κ(C, App(K, C): App(App(K, C), App(K, C)) ~> C
     ———————————————————————————————————————————————————————————————————————————————————————————————————————————————————— conv
-    Γ ⊢ App(App(S, K), K): <App(-, z: C)>◇C
+    Γ ⊢ App(App(S, K), K): <App(-, z: C)>◊C
     ```
 
 - App-like rules for rewrites using ev
@@ -531,8 +764,8 @@ as "for each way that A₁ relates to B₁ in the context Γ, ..., and Aₙ rela
       Γ ⊢ A: Pi(x, B, C, λQ.D)          Γ ⊢ x: B    Γ ⊢ S: C    Γ ⊢ λQ.D: ∏(C, λQ.s)
       Γ ⊢ A: < - | x: B ! (Q: C) > D    Γ ⊢ x: B    Γ ⊢ S: C    Γ ⊢ λQ.D: ∏_{Q: C}.s
       ——————————————————————————————————————————————————————————————————————————————
-      Γ ⊢ A | x!(S): ◇(D {S / Q})
-      Γ ⊢ A | x!(S): ◇ev(λQ.D, S)
+      Γ ⊢ A | x!(S): ◊(D {S / Q})
+      Γ ⊢ A | x!(S): ◊ev(λQ.D, S)
       ```
 
 - Later: Cut-like rules for each rewrite target with a use of ev on an exponental object.  TODO: express extraction from wrapper in terms of coalgebraic structure of free GSLT.
